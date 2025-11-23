@@ -1,19 +1,38 @@
 import React from 'react';
 import styled from 'styled-components';
-import Header from '../components/Header';
-import GameCard from '../components/GameCard';
+import { useQuery } from '@tanstack/react-query';
+import Header from '../../components/Header';
+import GameCard from '../../components/GameCard';
+import { fetchGames } from '../../services/api';
+
+
+import game1Img from '../../assets/images/game1.jpg';
+import game2Img from '../../assets/images/game2.jpg';
+import game3Img from '../../assets/images/game3.jpg';
+import game4Img from '../../assets/images/game4.jpg';
+import game5Img from '../../assets/images/game5.jpg';
+import game6Img from '../../assets/images/game6.jpg';
+
+const staticImagesMap = {
+    'game1.jpg': game1Img,
+    'game2.jpg': game2Img,
+    'game3.jpg': game3Img,
+    'game4.jpg': game4Img,
+    'game5.jpg': game5Img,
+    'game6.jpg': game6Img,
+};
+
 
 const PageContainer = styled.div`
-  background-color: #282c34; /* Темний фон */
-  min-height: 100vh;
+    min-height: 100vh;
 `;
 
 const ContentGrid = styled.div`
-  padding: 40px 20px;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 30px;
-  justify-items: center;
+    padding: 40px 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+    justify-items: center;
 `;
 
 const PageTitle = styled.h2`
@@ -22,23 +41,43 @@ const PageTitle = styled.h2`
     padding: 20px 0;
 `;
 
-// Дані-заглушки (замініть imageUrl на реальні шляхи з папки assets)
-const games = [
-    { id: 1, title: 'Epic Adventure 2077', price: 999, imageUrl: '' },
-    { id: 2, title: 'Galactic Warfare', price: 599, imageUrl: '' },
-    { id: 3, title: 'Ancient Artifacts', price: 750, imageUrl: '' },
-    { id: 4, title: 'Cyber Racer X', price: 450, imageUrl: '' },
-    { id: 5, title: 'Fantasy RPG World', price: 1200, imageUrl: '' },
-    { id: 6, title: 'Mystery Detective', price: 300, imageUrl: '' },
-];
-
 const Main = () => {
+    const { data: games, isLoading, error } = useQuery({
+        queryKey: ['gamesData'],
+        queryFn: fetchGames,
+        initialData: [],
+    });
+
+    if (isLoading) {
+        return (
+            <PageContainer style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', color: 'white' }}>
+                <Header />
+                <h3>Завантаження ігрового каталогу...</h3>
+            </PageContainer>
+        );
+    }
+
+    if (error) {
+        return (
+            <PageContainer style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', color: 'red' }}>
+                <Header />
+                <h3>Помилка завантаження даних: {error.message}</h3>
+            </PageContainer>
+        );
+    }
+
+    const gamesWithImages = games.map(game => ({
+        ...game,
+        imageUrl: staticImagesMap[game.imageUrl] || game.imageUrl
+    }));
+
+
     return (
         <PageContainer>
             <Header />
             <PageTitle>🔥 Гарячі Пропозиції Тижня</PageTitle>
             <ContentGrid>
-                {games.map(game => (
+                {gamesWithImages.map(game => (
                     <GameCard
                         key={game.id}
                         title={game.title}
@@ -47,7 +86,7 @@ const Main = () => {
                     />
                 ))}
             </ContentGrid>
-            {/* Тут має бути Footer, який ви можете створити пізніше */}
+            {/* <Footer /> */}
         </PageContainer>
     );
 };
